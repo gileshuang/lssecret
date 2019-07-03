@@ -17,6 +17,7 @@ void show_collection(gpointer col_p, gpointer _user_data);
 void show_item(gpointer item_p, gpointer _user_data);
 void show_secret(SecretItem *item);
 void show_attrib(gpointer key, gpointer val, gpointer _user_data);
+void handle_error(GError *err, bool fatal);
 
 int main(int argc, char *argv[]) {
 	if (argc > 1) {
@@ -47,10 +48,7 @@ void show() {
 		SECRET_SERVICE_LOAD_COLLECTIONS,
 		NULL,
 		&err);
-	if (err != NULL || srvc == NULL) {
-		std::cerr << "Couldn't get secret service\n";
-		std::exit(1);
-	}
+	handle_error(err, true);
 	show_service(srvc);
 	g_object_unref(srvc);
 }
@@ -96,11 +94,10 @@ void show_item(gpointer item_p, gpointer _user_data) {
 void show_secret(SecretItem *item) {
 	GError *err = NULL;
 	gboolean success = secret_item_load_secret_sync(item, NULL, &err);
+	handle_error(err, false);
 	SecretValue *val = secret_item_get_secret(item);
 
-	if (!success || val == NULL) {
-		std::cerr << "Couldn't load secret value. It may not be unlocked.\n";
-	} else {
+	if (val != NULL) {
 		gsize len;
 		const gchar *value = secret_value_get(val, &len);
 		// value is not nessesarily null terminated
@@ -114,4 +111,31 @@ void show_attrib(gpointer key_p, gpointer val_p, gpointer _user_data) {
 	gchar *val = static_cast<gchar *>(val_p);
 
 	std::cout << "Key:\t" << key << "\nValue:\t" << val << '\n';
+}
+
+void handle_error(GError *err, bool fatal) {
+	if (err == NULL) return;
+
+	if (err->domain != SECRET_ERROR) {
+		std::cerr << "Error: Couldn't get secret service for unkown reason\n";
+	} else {
+		switch (err->code) {
+			case SECRET_ERROR_PROTOCOL:
+				std::cerr << "Error: Recieived invalid data from secret Service\n";
+				break;
+			case SECRET_ERROR_IS_LOCKED:
+				std::cerr << "Error: Secret item or collection is locked\n";
+				break;
+			case SECRET_ERROR_NO_SUCH_OBJECT:
+				std::cerr << "Error: Secret item or collection not found\n";
+				break;
+			case SECRET_ERROR_ALREADY_EXISTS:
+				std::cerr << "Error: Secret item or collection already exists\n";
+				break;
+		}
+	}
+	std::cerr << "       " << err->message << '\n';
+
+	if (fatal) std::exit(1);
+	return;
 }
