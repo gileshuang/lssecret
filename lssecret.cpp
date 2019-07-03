@@ -101,7 +101,7 @@ void show_secret(SecretItem *item) {
 		gsize len;
 		const gchar *value = secret_value_get(val, &len);
 		// value is not nessesarily null terminated
-		std::printf("Value:\t%.*s\n", len, value);
+		std::printf("Secret:\t%.*s\n", len, value);
 		secret_value_unref(val);
 	}
 }
