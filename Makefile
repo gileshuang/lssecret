@@ -1,6 +1,6 @@
 LIBSECRET_FLAGS := $(shell pkg-config --cflags --libs libsecret-1)
 
-all: lssec
+all: lssecret
 
-lssec: lssec.cpp
-	$(CXX) -O3 -o lssec lssec.cpp $(LIBSECRET_FLAGS)
+lssecret: lssecret.cpp
+	$(CXX) -O3 -o $@ $^ $(LIBSECRET_FLAGS)
