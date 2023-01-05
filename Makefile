@@ -8,4 +8,7 @@ lssecret: lssecret.cpp
 install: lssecret
 	install -Dsm777 $< $(DESTDIR)/bin/$<
 
+clean:
+	rm -f lssecret
+
 .PHONY: all install

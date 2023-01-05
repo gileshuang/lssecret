@@ -101,7 +101,7 @@ void show_secret(SecretItem *item) {
 		gsize len;
 		const gchar *value = secret_value_get(val, &len);
 		// value is not nessesarily null terminated
-		std::printf("Secret:\t%.*s\n", len, value);
+		std::printf("Secret:\t%.*s\n", int(len), value);
 		secret_value_unref(val);
 	}
 }
@@ -117,11 +117,11 @@ void handle_error(GError *err, bool fatal) {
 	if (err == NULL) return;
 
 	if (err->domain != SECRET_ERROR) {
-		std::cerr << "Error: Couldn't get secret service for unkown reason\n";
+		std::cerr << "Error: Couldn't get secret service for unknown reason\n";
 	} else {
 		switch (err->code) {
 			case SECRET_ERROR_PROTOCOL:
-				std::cerr << "Error: Recieived invalid data from secret Service\n";
+				std::cerr << "Error: Received invalid data from secret Service\n";
 				break;
 			case SECRET_ERROR_IS_LOCKED:
 				std::cerr << "Error: Secret item or collection is locked\n";
